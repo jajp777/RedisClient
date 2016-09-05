@@ -87,15 +87,16 @@
 
 <ul>
 <li>
-<code>IRedisChannel</code> interface is used to execute commands. Channels are short lived, cheap to create, non-thread safe objects that represent virtual connections to Redis. Channels provide seamless access to commander and subscriber connections, analyze commands and decide how to route them through the three connection pools (multiplexed, exclusive and subscriber).</li>
+<code>IRedisChannel</code> interface is used to execute commands. Channels are short lived, cheap to create, non-thread safe objects that represent virtual connections to Redis. Channels provide seamless operation for commanding and subscribing.</li>
 </ul>
 
 <div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (var channel = _client.CreateChannel())
 {
-    <span class="pl-k">await</span> channel.ExecuteAsync(<span class="pl-s"><span class="pl-pds">"</span>incr mykey<span class="pl-pds">"</span></span>).ConfigureAwait(<span class="pl-c1">false</span>);
+    <span class="pl-k">await</span> channel.ExecuteAsync(<span class="pl-s"><span class="pl-pds">"</span>incr mykey<span class="pl-pds">"</span></span>)
+                 .ConfigureAwait(<span class="pl-c1">false</span>);
 }</pre></div>
 
-<p>       It is possible to execute multiple statements per command, splitting them with line breaks. Statements are pipelined to the same connection (but still they may be interpolated with other commands by Redis, use <code>MULTI</code> if you want to avoid it).</p>
+<p>     It is possible to execute multiple statements per command, splitting them with line breaks. Statements are pipelined to the same connection (but still they may be interpolated with other commands by Redis, use <code>MULTI</code> if you want to avoid it).</p>
 
 <div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (var channel = _client.CreateChannel())
 {
@@ -131,8 +132,8 @@
 <div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (var channel = _client.CreateChannel())
 {
     <span class="pl-k">await</span> channel.ExecuteAsync(<span class="pl-s"><span class="pl-pds">"</span>sadd @setKey @data<span class="pl-pds">"</span></span>,
-                               <span class="pl-k">new</span> { setKey = <span class="pl-s"><span class="pl-pds">"</span>myset<span class="pl-pds">"</span></span>, data = <span class="pl-k">new</span> [] { <span class="pl-s"><span class="pl-pds">"</span>a<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>b<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>c<span class="pl-pds">"</span></span> } })
-                               .ConfigureAwait(<span class="pl-c1">false</span>);
+                  <span class="pl-k">new</span> { setKey = <span class="pl-s"><span class="pl-pds">"</span>myset<span class="pl-pds">"</span></span>, data = <span class="pl-k">new</span> [] { <span class="pl-s"><span class="pl-pds">"</span>a<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>b<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>c<span class="pl-pds">"</span></span> } })
+                 .ConfigureAwait(<span class="pl-c1">false</span>);
 }</pre></div>
 
 <p>Object's properties, <code>IEnumerable&lt;Tuple&lt;,&gt;&gt;</code> and <code>IEnumerable&lt;KeyValuePair&lt;,&gt;&gt;</code> can be sequenced with the <code>Parameter</code> helper. This is handy for example saving objects as hashes:</p>
@@ -140,8 +141,8 @@
 <div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (var channel = _client.CreateChannel())
 {
     <span class="pl-k">await</span> channel.ExecuteAsync(<span class="pl-s"><span class="pl-pds">"</span>hmset myObject @data<span class="pl-pds">"</span></span>,
-                               <span class="pl-k">new</span> { data = Parameter.SequenceProperties(myObjectInstance))
-                               .ConfigureAwait(<span class="pl-c1">false</span>);
+                  <span class="pl-k">new</span> { data = Parameter.SequenceProperties(myObjectInstance))
+                 .ConfigureAwait(<span class="pl-c1">false</span>);
 }</pre></div>
 
 <p><a href="//github.com/vtortola/RedisClient/wiki/Parameter-binding">Read more about parameter binding</a>.</p>
@@ -222,7 +223,8 @@ options
 
 <div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (var channel = _client.CreateChannel())
 {
-    <span class="pl-k">var</span> result = <span class="pl-k">await</span> channel.ExecuteAsync(<span class="pl-s"><span class="pl-pds">"</span>Sum 1 2<span class="pl-pds">"</span></span>).ConfigureAwait(<span class="pl-c1">false</span>);
+    <span class="pl-k">var</span> result = <span class="pl-k">await</span> channel.ExecuteAsync(<span class="pl-s"><span class="pl-pds">"</span>Sum 1 2<span class="pl-pds">"</span></span>)
+                              .ConfigureAwait(<span class="pl-c1">false</span>);
     <span class="pl-k">var</span> <span class="pl-k">value</span> = result[<span class="pl-c1">0</span>].GetInteger();
 }</pre></div>
 
