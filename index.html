@@ -31,15 +31,68 @@
           <h1>
 <a id="redisclient" class="anchor" href="#redisclient" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>RedisClient</h1>
 
-<p>An experimental .NET Redis client based on templated strings that uses a special syntax for easing LUA script invocation named <a href="//github.com/vtortola/RedisClient/wiki/Procedures">"procedures"</a>. The API exposes virtual connections named "channels" that provide seamless access to Redis through three different connection pools.</p>
+<h4>
+<a id="another-net-redis-client-for-the-craic" class="anchor" href="#another-net-redis-client-for-the-craic" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Another .NET Redis client, for the craic.</h4>
+
+<h5>
+<a id="status-alpha" class="anchor" href="#status-alpha" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Status: ALPHA</h5>
+
+<p><a href="https://ci.appveyor.com/project/vtortola/redisclient/branch/master"><img src="https://ci.appveyor.com/api/projects/status/we9e8or6ajlm72pu/branch/master?svg=true" alt="Build status"></a></p>
+
+<p>An experimental .NET Redis client that uses a special syntax for easing LUA script invocation named <a href="//github.com/vtortola/RedisClient/wiki/Procedures">"procedures"</a>. The interface is based on templated strings, allowing to execute custom defined server side procedures as regular Redis commands. Executions are done through "channels", in essence virtual connections that provide seamless access to Redis through three different connection pools.</p>
 
 <ul>
 <li>Templated strings interface <a href="//github.com/vtortola/RedisClient/wiki/Parameter-binding">(more about parameter binding)</a>.</li>
 <li>Transparent connection management <a href="//github.com/vtortola/RedisClient/wiki/Connection-management">(more about connection management)</a>.</li>
 <li>Basic output binding <a href="//github.com/vtortola/RedisClient/wiki/Getting-results">(more about output binding)</a>.</li>
 <li>Server-side scripting through procedures <a href="//github.com/vtortola/RedisClient/wiki/Procedures">(more about procedures)</a>.</li>
+<li>A <a href="//github.com/vtortola/RedisClient/wiki/Procedure-Debugger">debugging tool for procedures</a> is available in this repository.</li>
 <li>Support for asynchronous, synchronous and "fire and forget" operations.</li>
 </ul>
+
+<h4>
+<a id="simple-procedure-example" class="anchor" href="#simple-procedure-example" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Simple procedure example</h4>
+
+<p>Imagine a catalog application, with products/services defined as different hashes in the Redis database, where each hash contains the properties of each product, like 
+name, url, stock, description, picture url, etc... Also you have different zsets containing the keys of all products sorted by a specific properties or just grouped by categories. 
+Since there may be a big amount of products, pagination is needed to avoid blowing up the server response with too much data. </p>
+
+<p>How is this pagination achieved <strong>without server side scripting</strong>? First querying the zset with the desired range to obtain the list of hash keys that need to be retrieved, and then retrieving
+each key (usually) one by one. </p>
+
+<p>This can be expedited and simplified <strong>with server-side scripting</strong>. For example, you can use a procedure to get the list of products directly, without extra round trips:</p>
+
+<pre><code>proc ZPaginate(zset, page, itemsPerPage)
+
+    local start  = page * itemsPerPage
+    local stop = start + itemsPerPage - 1
+    local items = redis.call('ZREVRANGE', zset, start, stop)
+
+    local result = {}
+
+    for index, key in ipairs(items) do
+        result[index] = redis.call('HGETALL', key)
+    end
+
+    return result
+endproc
+</code></pre>
+
+<p>Using the templated string syntax you can invoke this procedure easily:</p>
+
+<pre><code>// Execute procedure
+var result = channel.Execute("ZPaginate @key @page @items", 
+                              new { key = "products:bydate",  page=3, items=10 });
+
+// Expand result of the first line as a collection of results
+var hashes = result[0].AsResults();
+
+// Bind each hash to objects
+// Where &lt;Product&gt; is a class with properties that match the hash keys.
+var products = hashes.Select(h =&gt; h.AsObjectCollation&lt;Product&gt;()).ToArray();
+</code></pre>
+
+<p>Server side scripting has multiple advantages, like preventing multiple round trips to the Redis instance or atomicity. <a href="//github.com/vtortola/RedisClient#executing-procedures">Continue reading about procedures</a> </p>
 
 <h4>
 <a id="performance" class="anchor" href="#performance" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Performance</h4>
@@ -156,6 +209,8 @@
 <code>.GetXXX</code> methods: will try to read the value as <code>XXX</code> type, and will throw an <code>RedisClientCastException</code> if the data is not in the expected type.</li>
 <li>
 <code>.AsXXX</code> methods: will try to read the value as <code>XXX</code> type, or parse it as <code>XXX</code> (there is no <code>.GetDouble()</code> because Redis only returns string, integer or error, but there is a <code>.AsDouble()</code>.</li>
+<li>
+<code>.AsResults()</code> method: will expand a single result as another collection of <code>IRedisResultInspector</code>. This is useful when a LUA script is returning an array of other Redis types.</li>
 <li>
 <code>.AsObjectCollation&lt;T&gt;()</code> allows to bind the result to an object by parsing a sequence of key-value pairs, and bind it to the object properties. For example <code>member1 value1 member2 value2</code> will be bound as <code>{ member1 = "value1", member2 = "value2" }</code>.</li>
 <li>
