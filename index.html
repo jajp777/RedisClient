@@ -28,18 +28,7 @@
     <div id="content-wrapper">
       <div class="inner clearfix">
         <section id="main-content">
-          <h1>
-<a id="redisclient" class="anchor" href="#redisclient" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>RedisClient</h1>
-
-<h4>
-<a id="another-net-redis-client-for-the-craic" class="anchor" href="#another-net-redis-client-for-the-craic" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Another .NET Redis client, for the craic.</h4>
-
-<h5>
-<a id="status-alpha" class="anchor" href="#status-alpha" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Status: ALPHA</h5>
-
-<p><a href="https://ci.appveyor.com/project/vtortola/redisclient/branch/master"><img src="https://ci.appveyor.com/api/projects/status/we9e8or6ajlm72pu/branch/master?svg=true" alt="Build status"></a></p>
-
-<p>An experimental .NET Redis client that uses a special syntax for easing LUA script invocation named <a href="//github.com/vtortola/RedisClient/wiki/Procedures">"procedures"</a>. The interface is based on templated strings, allowing to execute custom defined server side procedures as regular Redis commands. Executions are done through "channels", in essence virtual connections that provide seamless access to Redis through three different connection pools.</p>
+          <p>An experimental .NET Redis client that uses a special syntax for easing LUA script invocation named <a href="//github.com/vtortola/RedisClient/wiki/Procedures">"procedures"</a>. The interface is based on templated strings, allowing to execute custom defined server side procedures as regular Redis commands. Executions are done through "channels", in essence virtual connections that provide seamless access to Redis through three different connection pools.</p>
 
 <ul>
 <li>Templated strings interface <a href="//github.com/vtortola/RedisClient/wiki/Parameter-binding">(more about parameter binding)</a>.</li>
@@ -80,17 +69,16 @@ endproc
 
 <p>Using the templated string syntax you can invoke this procedure easily:</p>
 
-<pre><code>// Execute procedure
-var result = channel.Execute("ZPaginate @key @page @items", 
-                              new { key = "products:bydate",  page=3, items=10 });
+<div class="highlight highlight-source-cs"><pre><span class="pl-c">// Execute procedure</span>
+<span class="pl-k">var</span> result = channel.Execute(<span class="pl-s"><span class="pl-pds">"</span>ZPaginate @key @page @items<span class="pl-pds">"</span></span>, 
+                              <span class="pl-k">new</span> { key = <span class="pl-s"><span class="pl-pds">"</span>products:bydate<span class="pl-pds">"</span></span>,  page=<span class="pl-c1">3</span>, items=<span class="pl-c1">10</span> });
 
-// Expand result of the first line as a collection of results
-var hashes = result[0].AsResults();
+<span class="pl-c">// Expand result of the first line as a collection of results</span>
+<span class="pl-k">var</span> hashes = result[<span class="pl-c1">0</span>].AsResults();
 
-// Bind each hash to objects
-// Where &lt;Product&gt; is a class with properties that match the hash keys.
-var products = hashes.Select(h =&gt; h.AsObjectCollation&lt;Product&gt;()).ToArray();
-</code></pre>
+<span class="pl-c">// Bind each hash to an object</span>
+<span class="pl-c">// Where &lt;Product&gt; is a class with properties that match the hash keys.</span>
+<span class="pl-k">var</span> products = hashes.Select(h =&gt; h.AsObjectCollation&lt;Product&gt;()).ToArray();</pre></div>
 
 <p>Server side scripting has multiple advantages, like preventing multiple round trips to the Redis instance or atomicity. <a href="//github.com/vtortola/RedisClient#executing-procedures">Continue reading about procedures</a> </p>
 
