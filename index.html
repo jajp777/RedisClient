@@ -28,7 +28,9 @@
     <div id="content-wrapper">
       <div class="inner clearfix">
         <section id="main-content">
-          <p>An experimental .NET Redis client that uses a special syntax for easing LUA script invocation named <a href="//github.com/vtortola/RedisClient/wiki/Procedures">"procedures"</a>. The interface is based on templated strings, allowing to execute custom defined server side procedures as regular Redis commands. Executions are done through "channels", in essence virtual connections that provide seamless access to Redis through three different connection pools.</p>
+          <p><a href="https://ci.appveyor.com/project/vtortola/redisclient/branch/master"><img src="https://ci.appveyor.com/api/projects/status/we9e8or6ajlm72pu/branch/master?svg=true" alt="Build status"></a></p>
+
+<p>An experimental .NET Redis client that uses a special syntax for easing LUA script invocation named <a href="//github.com/vtortola/RedisClient/wiki/Procedures">"procedures"</a>. The interface is based on templated strings, allowing to execute custom defined server side procedures as regular Redis commands. Executions are done through "channels", in essence virtual connections that provide seamless access to Redis through three different connection pools.</p>
 
 <ul>
 <li>Templated strings interface <a href="//github.com/vtortola/RedisClient/wiki/Parameter-binding">(more about parameter binding)</a>.</li>
@@ -87,8 +89,8 @@ endproc
 
 <p>A <a href="//github.com/vtortola/RedisClient/wiki/Performance">performance comparison</a> shows the that the performance is close to other well known clients.</p>
 
-<p><a href="//github.com/vtortola/RedisClient/wiki/Performance"><img src="http://vtortola.github.io/rcclientperfTran.png" height="250"></a>
-<a href="//github.com/vtortola/RedisClient/wiki/Performance"><img src="http://vtortola.github.io/rcclientperfPipe.png" height="250"></a></p>
+<p><a href="//github.com/vtortola/RedisClient/wiki/Performance"><img src="http://vtortola.github.io/RCPerf/pipeline.png" height="250"></a>
+<a href="//github.com/vtortola/RedisClient/wiki/Performance"><img src="http://vtortola.github.io/RCPerf/transactions.png" height="250"></a></p>
 
 <h4>
 <a id="use-in-a-web-application" class="anchor" href="#use-in-a-web-application" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Use in a web application</h4>
