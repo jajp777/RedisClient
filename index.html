@@ -8,14 +8,7 @@
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-    <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-      ga('create', 'UA-53263543-1', 'auto');
-      ga('send', 'pageview');
-    </script>
+
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
@@ -35,8 +28,7 @@
     <div id="content-wrapper">
       <div class="inner clearfix">
         <section id="main-content">
-          
-<p>An experimental .NET Redis client that uses a special syntax for easing LUA script invocation named <a href="//github.com/vtortola/RedisClient/wiki/Procedures">"procedures"</a>. The interface is based on templated strings, allowing to execute custom defined server side procedures as regular Redis commands. Executions are done through "channels", in essence virtual connections that provide seamless access to Redis through three different connection pools.</p>
+          <p>An experimental .NET Redis client that uses a special syntax for easing LUA script invocation named <a href="//github.com/vtortola/RedisClient/wiki/Procedures">"procedures"</a>. The interface is based on templated strings, allowing to execute custom defined server side procedures as regular Redis commands. Executions are done through "channels", in essence virtual connections that provide seamless access to Redis through three different connection pools.</p>
 
 <ul>
 <li>Templated strings interface <a href="//github.com/vtortola/RedisClient/wiki/Parameter-binding">(more about parameter binding)</a>.</li>
@@ -45,6 +37,25 @@
 <li>Server-side scripting through procedures <a href="//github.com/vtortola/RedisClient/wiki/Procedures">(more about procedures)</a>.</li>
 <li>A <a href="//github.com/vtortola/RedisClient/wiki/Procedure-Debugger">debugging tool for procedures</a> is available in this repository.</li>
 <li>Support for asynchronous, synchronous and "fire and forget" operations.</li>
+<li>
+<strong>Redis Cluster</strong>: Not supported at the moment, but is the next thing in my roadmap.</li>
+</ul>
+
+<h3>
+<a id="why--procedures" class="anchor" href="#why--procedures" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Why  <a href="//github.com/vtortola/RedisClient/wiki/Procedures">procedures</a>?</h3>
+
+<ul>
+<li>They have all the benefits of regular LUA scripting in Redis, like atomicity and avoiding multiple round trips to the server, since a procedure is just a way to wrap regular LUA scripts.</li>
+<li>Multiple procedures can be defined in a same text file since they are limited by <code>proc</code> and <code>endproc</code> boundaries.</li>
+<li>RedisClient handles the <a href="//github.com/vtortola/RedisClient/wiki/Procedure-management">procedure deployment</a>.</li>
+<li>Procedures are invoked by name rather than using <code>EVAL</code> or <code>EVALSHA</code>.</li>
+<li>Instead passing parameter values in <code>KEYS</code> and <code>ARGV</code> arrays, and having to hardcore the index location of the data in those arrays, <strong>named parameters are used</strong>.</li>
+<li>
+<a href="//github.com/vtortola/RedisClient/wiki/Procedures#parameter-cardinality"><strong>Array parameters of arbitrary length</strong></a> are supported, being the length of those arrays defined at parameter value binding time.</li>
+<li>Procedures in RedisClient use the same <a href="//github.com/vtortola/RedisClient/wiki/Parameter-binding">parameter binding</a> capabilities than for regular Redis commands.</li>
+<li>Procedure results can be <a href="//github.com/vtortola/RedisClient/wiki/Getting-results">inspected</a> as any other Redis command.</li>
+<li>
+<a href="//github.com/vtortola/RedisClient/wiki/Procedures">Learn more about procedures</a>.</li>
 </ul>
 
 <h4>
@@ -95,8 +106,8 @@ endproc
 
 <p>A <a href="//github.com/vtortola/RedisClient/wiki/Performance">performance comparison</a> shows the that the performance is close to other well known clients.</p>
 
-<p><a href="//github.com/vtortola/RedisClient/wiki/Performance"><img src="http://vtortola.github.io/RCPerf/pipeline.png"></a>
-<a href="//github.com/vtortola/RedisClient/wiki/Performance"><img src="http://vtortola.github.io/RCPerf/transactions.png"></a></p>
+<p><a href="//github.com/vtortola/RedisClient/wiki/Performance"><img src="http://vtortola.github.io/RCPerf/pipeline.png" height="250"></a>
+<a href="//github.com/vtortola/RedisClient/wiki/Performance"><img src="http://vtortola.github.io/RCPerf/transactions.png" height="250"></a></p>
 
 <h4>
 <a id="use-in-a-web-application" class="anchor" href="#use-in-a-web-application" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Use in a web application</h4>
@@ -107,6 +118,21 @@ endproc
 
 <h2>
 <a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting started</h2>
+
+<ul>
+<li>
+<a href="#installing">Installing</a>.</li>
+<li>
+<a href="#setting-it-up">Setting it up</a>.</li>
+<li>
+<a href="#binding-parameters">Binding parameters</a>.</li>
+<li>
+<a href="#getting-results">Getting results</a>.</li>
+<li>
+<a href="#subscribing-to-channels">Subscribing to channels</a>.</li>
+<li>
+<a href="#executing-procedures">Executing procedures</a>.</li>
+</ul>
 
 <h3>
 <a id="installing" class="anchor" href="#installing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installing</h3>
@@ -134,7 +160,7 @@ endproc
 <code>IRedisChannel</code> interface is used to execute commands. Channels are short lived, cheap to create, non-thread safe objects that represent virtual connections to Redis. Channels provide seamless operation for commanding and subscribing.</li>
 </ul>
 
-<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (var channel = _client.CreateChannel())
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (<span class="pl-k">var</span> channel = _client.CreateChannel())
 {
     <span class="pl-k">await</span> channel.ExecuteAsync(<span class="pl-s"><span class="pl-pds">"</span>incr mykey<span class="pl-pds">"</span></span>)
                  .ConfigureAwait(<span class="pl-c1">false</span>);
@@ -142,7 +168,7 @@ endproc
 
 <p>     It is possible to execute multiple statements per command, splitting them with line breaks. Statements are pipelined to the same connection (but still they may be interpolated with other commands by Redis, use <code>MULTI</code> if you want to avoid it).</p>
 
-<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (var channel = _client.CreateChannel())
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (<span class="pl-k">var</span> channel = _client.CreateChannel())
 {
     <span class="pl-k">await</span> channel.ExecuteAsync(@<span class="pl-s"><span class="pl-pds">"</span></span>
 <span class="pl-s">                  incr mykey</span>
@@ -162,7 +188,7 @@ endproc
 
 <p>Parameter binding works passing an object which properties will be bind to the command parameters, identified by a starting '@'. Only <a href="https://msdn.microsoft.com/en-us/library/exx3b86w(v=vs.80).aspx">integral types</a>, <code>String</code>, <code>DateTime</code> and their <code>IEnumerable&lt;&gt;</code> are supported. Commands should always start by a Redis command or a procedure alias.</p>
 
-<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (var channel = _client.CreateChannel())
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (<span class="pl-k">var</span> channel = _client.CreateChannel())
 {
     <span class="pl-k">await</span> channel.ExecuteAsync(@<span class="pl-s"><span class="pl-pds">"</span></span>
 <span class="pl-s">                  incr @counterKey</span>
@@ -173,7 +199,7 @@ endproc
 
 <p>Collections are added to the command as sequences. For example, it is possible to add multiple items with <code>SADD</code>:</p>
 
-<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (var channel = _client.CreateChannel())
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (<span class="pl-k">var</span> channel = _client.CreateChannel())
 {
     <span class="pl-k">await</span> channel.ExecuteAsync(<span class="pl-s"><span class="pl-pds">"</span>sadd @setKey @data<span class="pl-pds">"</span></span>,
                   <span class="pl-k">new</span> { setKey = <span class="pl-s"><span class="pl-pds">"</span>myset<span class="pl-pds">"</span></span>, data = <span class="pl-k">new</span> [] { <span class="pl-s"><span class="pl-pds">"</span>a<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>b<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>c<span class="pl-pds">"</span></span> } })
@@ -182,7 +208,7 @@ endproc
 
 <p>Object's properties, <code>IEnumerable&lt;Tuple&lt;,&gt;&gt;</code> and <code>IEnumerable&lt;KeyValuePair&lt;,&gt;&gt;</code> can be sequenced with the <code>Parameter</code> helper. This is handy for example saving objects as hashes:</p>
 
-<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (var channel = _client.CreateChannel())
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (<span class="pl-k">var</span> channel = _client.CreateChannel())
 {
     <span class="pl-k">await</span> channel.ExecuteAsync(<span class="pl-s"><span class="pl-pds">"</span>hmset myObject @data<span class="pl-pds">"</span></span>,
                   <span class="pl-k">new</span> { data = Parameter.SequenceProperties(myObjectInstance))
@@ -212,7 +238,7 @@ endproc
 <li>
 <p><code>.AsDictionaryCollation&lt;TKey, TValue&gt;()</code> allows to bind the result to an object by parsing a sequence of key-value pairs as <code>KeyValuePair&lt;&gt;</code>.</p>
 
-<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (var channel = _client.CreateChannel())
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (<span class="pl-k">var</span> channel = _client.CreateChannel())
 {
     <span class="pl-k">var</span> results = <span class="pl-k">await</span> channel.ExecuteAsync(@<span class="pl-s"><span class="pl-pds">"</span></span>
 <span class="pl-s">                                incr mycounter</span>
@@ -232,7 +258,7 @@ endproc
 
 <p><code>IRedisChannel</code> exposes a <code>NotificationHandler</code> property that can be used to get or set a handler for messages received by this channel. The handler will receive <code>RedisNotification</code> objects containing the message data.</p>
 
-<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (var channel = Client.CreateChannel())
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (<span class="pl-k">var</span> channel = Client.CreateChannel())
 {
     channel.NotificationHandler = msg =&gt; Console.WriteLine(msg.Content); <span class="pl-c">// will print 'whatever'</span>
     channel.Execute(<span class="pl-s"><span class="pl-pds">"</span>psubscribe h?llo<span class="pl-pds">"</span></span>);
@@ -267,7 +293,7 @@ options
 
 <p>Then they can be invoked as normal Redis commands:</p>
 
-<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (var channel = _client.CreateChannel())
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (<span class="pl-k">var</span> channel = _client.CreateChannel())
 {
     <span class="pl-k">var</span> result = <span class="pl-k">await</span> channel.ExecuteAsync(<span class="pl-s"><span class="pl-pds">"</span>Sum 1 2<span class="pl-pds">"</span></span>)
                               .ConfigureAwait(<span class="pl-c1">false</span>);
@@ -305,7 +331,7 @@ endproc
 
 <p>Invoking:</p>
 
-<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (var channel = _client.CreateChannel())
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> (<span class="pl-k">var</span> channel = _client.CreateChannel())
 {
     <span class="pl-k">var</span> result = <span class="pl-k">await</span> channel.ExecuteAsync(@<span class="pl-s"><span class="pl-pds">"</span></span>
 <span class="pl-s">                               sumAndStore @key @values<span class="pl-pds">"</span></span>,
@@ -332,7 +358,7 @@ endproc
             <small>Download</small>
             .tar.gz file
           </a>
-          <p><a href="https://ci.appveyor.com/project/vtortola/redisclient/branch/master"><img src="https://ci.appveyor.com/api/projects/status/we9e8or6ajlm72pu/branch/master?svg=true" alt="Build status"></a></p>
+
           <p class="repo-owner"><a href="https://github.com/vtortola/RedisClient"></a> is maintained by <a href="https://github.com/vtortola">vtortola</a>.</p>
 
           <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
